@@ -45,6 +45,6 @@ def getResultsUrl(state):
 	return(rUrl.replace("\"",""))
 #def getRace(n)
 #print(getHtml('https://www.formula1.com/en/racing/2019.html','article')[0])
-print(getResults(1,getResultsUrl("China")))
+#print(getResults(1,getResultsUrl("China")))
 
 
