@@ -18,7 +18,7 @@ def getResults(n,url):
 	nameRE      = re.search(dataPattern, attr[5])
 	surnameRE   = re.search(dataPattern, attr[6])
 	abbrRE      = re.search(dataPattern, attr[7])
-	##teamRE      = re.search(dataPattern, attr[9])
+	#####teamRE      = re.search(dataPattern, attr[9])
 	lapsRE      = re.search(dataPattern, attr[10])
 	timeRE      = re.search(timePattern, attr[11])
 	ptsRE       = re.search(dataPattern, attr[12])
