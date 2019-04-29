@@ -41,31 +41,42 @@ def getResults(n,url):
 
 def getResultsUrl(state):
 	urlPattern = r"\".{75,95}\""
+	urlPattern2 = r".+[h][t][m][l]"
 	racesUrl = "https://www.formula1.com/en/racing/2019/"+state+".html"
 	races = getHtml(racesUrl,'p')
 	race =str(races[14]).split("\n")
 	rUrlRE = re.search(urlPattern,race[9])
 	rUrl = rUrlRE.group()
-	return(rUrl.replace("\"",""))
-
-#def getRace(n)
-#print(getHtml('https://www.formula1.com/en/racing/2019.html','article')[0])
-#print(getResults(1,getResultsUrl("China")))
+	rUrl2RE = re.search(urlPattern2,rUrl.replace("\"",""))
+	rUrl2 = rUrl2RE.group()
+	return(rUrl2)
 
 def monthToNumber(month):
 	months = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
 	return(months[month])
 
-statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
-statePattern2 = r"[A-Za-z]+"
-racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
-raceAttr = str(racesList[1]).split("\n")
-print(raceAttr[12])
-state1 = re.search(statePattern1,raceAttr[1])
-state2 = re.search(statePattern2,state1.group())
+def getState(number):
+	racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
+	statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
+	statePattern2 = r"[A-Za-z]+"
+	raceAttr = str(racesList[number]).split("\n")
+	state1 = re.search(statePattern1,raceAttr[1])
+	state2 = re.search(statePattern2,state1.group())
+	return(state2.group())
+
+#statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
+#statePattern2 = r"[A-Za-z]+"
+#racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
+#raceAttr = str(racesList[1]).split("\n")
+#print(raceAttr[12])
+#state1 = re.search(statePattern1,raceAttr[1])
+#state2 = re.search(statePattern2,state1.group())
 #print(state2.group())
-monthPattern = r"[A-Z][a-z][a-z]"
-now = datetime.datetime.now()
-month = re.search(monthPattern,raceAttr[12])
-print(now.month)
-print(monthToNumber(month.group()))
+#monthPattern = r"[A-Z][a-z][a-z]"
+#now = datetime.datetime.now()
+#month = re.search(monthPattern,raceAttr[12])
+#print(now.day)
+#print(monthToNumber(month.group()))
+#print(raceAttr[12])
+print(getState(3))
+print(getResults(1,getResultsUrl(getState(3))))
