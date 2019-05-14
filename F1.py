@@ -10,6 +10,10 @@ def getHtml(url,tag):
 	soup = BeautifulSoup(response.text, "html.parser")
 	return(soup.findAll(tag))
 
+def getRaceAttr(number):
+	racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
+	raceAttr = str(racesList[number]).split("\n")
+	return(raceAttr)
 def getResults(n,url):
 	pilots = getHtml(url,'tr')
 	dataPattern  = r">.+<"
@@ -56,14 +60,20 @@ def monthToNumber(month):
 	return(months[month])
 
 def getState(number):
-	racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
 	statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
 	statePattern2 = r"[A-Za-z]+"
-	raceAttr = str(racesList[number]).split("\n")
-	state1 = re.search(statePattern1,raceAttr[1])
+	state1 = re.search(statePattern1,getRaceAttr(number)[1])
 	state2 = re.search(statePattern2,state1.group())
 	return(state2.group())
 
+def getDate(number):
+	attr = getRaceAttr(number)
+	datePattern = r"[0-9]{1,2} [A-Za-z]{3,3}"
+	dateRE = re.search(datePattern,"                            31 Mar")
+	return(dateRE.group())
+	
+
+print(getDate(1))
 #statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
 #statePattern2 = r"[A-Za-z]+"
 #racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
