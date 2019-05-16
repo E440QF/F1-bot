@@ -69,10 +69,14 @@ def getState(number):
 def getDate(number):
 	attr = getRaceAttr(number)
 	datePattern = r"[0-9]{1,2} [A-Za-z]{3,3}"
-	dateRE = re.search(datePattern,"                            31 Mar")
-	return(attr[11])
+	dateRE = re.search(datePattern,getRaceAttr(number)[6])
+	dateText = dateRE.group().split(" ")
+	num = int(dateText[0])
+	month = monthToNumber(dateText[1])
+	date = [num,month]
+	return(date)
 
-#print(getDate(1))
+print(getDate(1))
 #statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
 #statePattern2 = r"[A-Za-z]+"
 #racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
@@ -86,6 +90,5 @@ def getDate(number):
 #month = re.search(monthPattern,raceAttr[12])
 #print(now.day)
 #print(monthToNumber(month.group()))
-#print(raceAttr[12])
-print(getState(3))
-print(getResults(1,getResultsUrl("China")))
+#print(getState(3))
+#print(getResults(1,getResultsUrl("China")))
