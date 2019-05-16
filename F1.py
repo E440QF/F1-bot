@@ -60,7 +60,7 @@ def monthToNumber(month):
 	return(months[month])
 
 def getState(number):
-	statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
+	statePattern1  = r"/[A-Za-z]+\.jpg"
 	statePattern2 = r"[A-Za-z]+"
 	state1 = re.search(statePattern1,getRaceAttr(number)[1])
 	state2 = re.search(statePattern2,state1.group())
@@ -71,4 +71,3 @@ def getDate(number):
 	datePattern = r"[0-9]{1,2} [A-Za-z]{3,3}"
 	dateRE = re.search(datePattern,"                            31 Mar")
 	return(dateRE.group())
-
