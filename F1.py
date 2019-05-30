@@ -49,7 +49,7 @@ def getResultsUrl(state):
 	urlPattern2  = r".+[h][t][m][l]"
 	racesUrl     = "https://www.formula1.com/en/racing/2019/"+state+".html"
 	races        = getHtml(racesUrl,'p')
-	race         =str(races[14]).split("\n")
+	race         = str(races[14]).split("\n")
 	rUrlRE       = re.search(urlPattern,race[9])
 	rUrl         = rUrlRE.group()
 	rUrl2RE      = re.search(urlPattern2,rUrl.replace("\"",""))
