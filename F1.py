@@ -6,57 +6,58 @@ import re
 from bs4 import BeautifulSoup
 
 def getHtml(url,tag):
-	response = requests.get(url)
-	soup = BeautifulSoup(response.text, "html.parser")
+	response     = requests.get(url)
+	soup         = BeautifulSoup(response.text, "html.parser")
 	return(soup.findAll(tag))
 
 def getRaceAttr(number):
-	racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
-	raceAttr = str(racesList[number]).split("\n")
+	racesList    = getHtml("https://www.formula1.com/en/racing/2019.html","article")
+	raceAttr     = str(racesList[number]).split("\n")
 	return(raceAttr)
+
 def getResults(n,url):
-	pilots = getHtml(url,'tr')
+	pilots       = getHtml(url,'tr')
 	dataPattern  = r">.+<"
 	timePattern  = r">.{3,11}<"
 ######################################################
-	attr        = str(pilots[n]).split("\n")
-	posRE       = re.search(dataPattern, attr[2])
-	carNumberRE = re.search(dataPattern, attr[3])
-	nameRE      = re.search(dataPattern, attr[5])
-	surnameRE   = re.search(dataPattern, attr[6])
-	abbrRE      = re.search(dataPattern, attr[7])
-	teamRE      = re.search(dataPattern, attr[9])
-	lapsRE      = re.search(dataPattern, attr[10])
-	timeRE      = re.search(timePattern, attr[11])
-	ptsRE       = re.search(dataPattern, attr[12])
+	attr         = str(pilots[n]).split("\n")
+	posRE        = re.search(dataPattern, attr[2])
+	carNumberRE  = re.search(dataPattern, attr[3])
+	nameRE       = re.search(dataPattern, attr[5])
+	surnameRE    = re.search(dataPattern, attr[6])
+	abbrRE       = re.search(dataPattern, attr[7])
+	teamRE       = re.search(dataPattern, attr[9])
+	lapsRE       = re.search(dataPattern, attr[10])
+	timeRE       = re.search(timePattern, attr[11])
+	ptsRE        = re.search(dataPattern, attr[12])
 ######################################################
-	pos         = posRE.group()
-	carNumber   = carNumberRE.group()
-	name        = nameRE.group()
-	surname     = surnameRE.group()
-	abbr        = abbrRE.group()
-	team        = teamRE.group()
-	laps        = lapsRE.group()
-	time        = timeRE.group()
-	pts         = ptsRE.group()
+	pos          = posRE.group()
+	carNumber    = carNumberRE.group()
+	name         = nameRE.group()
+	surname      = surnameRE.group()
+	abbr         = abbrRE.group()
+	team         = teamRE.group()
+	laps         = lapsRE.group()
+	time         = timeRE.group()
+	pts          = ptsRE.group()
 ######################################################
-	result      = {"pos":pos,"carNumber":carNumber,"name":name,"surname":surname,"abbr":abbr,"team":team,"laps":laps,"time":time,"pts":pts}
+	result       = {"pos":pos,"carNumber":carNumber,"name":name,"surname":surname,"abbr":abbr,"team":team,"laps":laps,"time":time,"pts":pts}
 	return(result)
 
 def getResultsUrl(state):
-	urlPattern = r"\".{75,95}\""
-	urlPattern2 = r".+[h][t][m][l]"
-	racesUrl = "https://www.formula1.com/en/racing/2019/"+state+".html"
-	races = getHtml(racesUrl,'p')
-	race =str(races[14]).split("\n")
-	rUrlRE = re.search(urlPattern,race[9])
-	rUrl = rUrlRE.group()
-	rUrl2RE = re.search(urlPattern2,rUrl.replace("\"",""))
-	rUrl2 = rUrl2RE.group()
+	urlPattern   = r"\".{75,95}\""
+	urlPattern2  = r".+[h][t][m][l]"
+	racesUrl     = "https://www.formula1.com/en/racing/2019/"+state+".html"
+	races        = getHtml(racesUrl,'p')
+	race         =str(races[14]).split("\n")
+	rUrlRE       = re.search(urlPattern,race[9])
+	rUrl         = rUrlRE.group()
+	rUrl2RE      = re.search(urlPattern2,rUrl.replace("\"",""))
+	rUrl2        = rUrl2RE.group()
 	return(rUrl2)
 
 def monthToNumber(month):
-	months = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+	months       = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
 	return(months[month])
 
 def getState(number):
@@ -76,7 +77,17 @@ def getDate(number):
 	date = [num,month]
 	return(date)
 
-print(getDate(1))
+def disputedRaces():
+	now = datetime.datetime.now()
+	disputed = []
+	for i in range(len(getHtml("https://www.formula1.com/en/racing/2019.html","article"))):
+		date = getDate(i)
+		if((now.month > date[1]) or ((now.month == date[1]) and (now.day > date[0]))):
+			disputed.append(i)
+	return(disputed)
+
+print(getState(disputedRaces()[-1]))
+
 #statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
 #statePattern2 = r"[A-Za-z]+"
 #racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
@@ -92,3 +103,4 @@ print(getDate(1))
 #print(monthToNumber(month.group()))
 #print(getState(3))
 #print(getResults(1,getResultsUrl("China")))
+#print(len(getHtml("https://www.formula1.com/en/racing/2019.html","article")))
