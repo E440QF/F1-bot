@@ -2,8 +2,11 @@ import requests
 import urllib.request
 import time
 import datetime
+import telepot
 import re
 from bs4 import BeautifulSoup
+
+bot = telepot.bot('your api key')
 
 def getHtml(url,tag):
 	response     = requests.get(url)
