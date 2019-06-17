@@ -2,11 +2,13 @@ import requests
 import urllib.request
 import time
 import datetime
-import telepot
 import re
 from bs4 import BeautifulSoup
+import telepot
+from telepot.loop import MessageLoop
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 
-bot = telepot.bot('your api key')
+bot = telepot.Bot('863130447:AAHNE6jdJKSFBgncPY-eqlmRDuTq6RG227s')
 
 def getHtml(url,tag):
 	response     = requests.get(url)
@@ -46,7 +48,7 @@ def getResults(n,url):
 ######################################################
 	result       = {"pos":pos,"carNumber":carNumber,"name":name,"surname":surname,"abbr":abbr,"team":team,"laps":laps,"time":time,"pts":pts}
 	return(result)
-
+'''
 def getResultsUrl(state):
 	urlPattern   = r"\".{75,95}\""
 	urlPattern2  = r".+[h][t][m][l]"
@@ -58,6 +60,9 @@ def getResultsUrl(state):
 	rUrl2RE      = re.search(urlPattern2,rUrl.replace("\"",""))
 	rUrl2        = rUrl2RE.group()
 	return(rUrl2)
+'''
+def getResultsUrl(state):
+	return("https://www.formula1.com/en/results.html/2019/races/1000/"+state+"/race-result.html")
 
 def monthToNumber(month):
 	months       = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
@@ -83,27 +88,74 @@ def getDate(number):
 def disputedRaces():
 	now = datetime.datetime.now()
 	disputed = []
+	print('Updating calendar......')
 	for i in range(len(getHtml("https://www.formula1.com/en/racing/2019.html","article"))):
 		date = getDate(i)
 		if((now.month > date[1]) or ((now.month == date[1]) and (now.day > date[0]))):
 			disputed.append(i)
+	print('Done')
 	return(disputed)
+disputedRacesList=disputedRaces()
 
-print(getState(disputedRaces()[-1]))
+def getResultsNumber(number,n):
+	return(getResults(n,getResultsUrl(getState(number))))
 
-#statePattern1  = r"[0-9]{4,4}/[A-Za-z]+/_jcr"
-#statePattern2 = r"[A-Za-z]+"
-#racesList = getHtml("https://www.formula1.com/en/racing/2019.html","article")
-#raceAttr = str(racesList[1]).split("\n")
-#print(raceAttr[12])
-#state1 = re.search(statePattern1,raceAttr[1])
-#state2 = re.search(statePattern2,state1.group())
-#print(state2.group())
-#monthPattern = r"[A-Z][a-z][a-z]"
-#now = datetime.datetime.now()
-#month = re.search(monthPattern,raceAttr[12])
-#print(now.day)
-#print(monthToNumber(month.group()))
-#print(getState(3))
-#print(getResults(1,getResultsUrl("China")))
-#print(len(getHtml("https://www.formula1.com/en/racing/2019.html","article")))
+#print(getState(disputedRaces()[-1]+1))
+
+
+'''''''''''''''''''''''''''''''''''''''''''''
+
+Keyboard creation
+
+'''''''''''''''''''''''''''''''''''''''''''''
+start  = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='latest', callback_data='latest'), InlineKeyboardButton(text='next', callback_data='next')],
+							 				  					[InlineKeyboardButton(text='previous races', callback_data='previous')],
+											  					[InlineKeyboardButton(text='upcoming races', callback_data='upcoming')]])
+
+latest =  InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],1)['abbr'], time=getResultsNumber(disputedRacesList[-1],1)['time']),callback_data='pilot')],
+											   	[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],2)['abbr'], time=getResultsNumber(disputedRacesList[-1],2)['time']),callback_data='pilot')],
+       							                [InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],3)['abbr'], time=getResultsNumber(disputedRacesList[-1],3)['time']),callback_data='pilot')],
+						                     	[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],4)['abbr'], time=getResultsNumber(disputedRacesList[-1],4)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],5)['abbr'], time=getResultsNumber(disputedRacesList[-1],5)['time']),callback_data='pilot')],
+              						           	[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],6)['abbr'], time=getResultsNumber(disputedRacesList[-1],6)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],7)['abbr'], time=getResultsNumber(disputedRacesList[-1],7)['time']),callback_data='pilot')],
+                         						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],8)['abbr'], time=getResultsNumber(disputedRacesList[-1],8)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],9)['abbr'], time=getResultsNumber(disputedRacesList[-1],9)['time']),callback_data='pilot')],
+                         						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],10)['abbr'], time=getResultsNumber(disputedRacesList[-1],10)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],11)['abbr'], time=getResultsNumber(disputedRacesList[-1],11)['time']),callback_data='pilot')],
+                         						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],12)['abbr'], time=getResultsNumber(disputedRacesList[-1],12)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],13)['abbr'], time=getResultsNumber(disputedRacesList[-1],13)['time']),callback_data='pilot')],
+                         						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],14)['abbr'], time=getResultsNumber(disputedRacesList[-1],14)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],15)['abbr'], time=getResultsNumber(disputedRacesList[-1],15)['time']),callback_data='pilot')],
+                         						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],16)['abbr'], time=getResultsNumber(disputedRacesList[-1],16)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],17)['abbr'], time=getResultsNumber(disputedRacesList[-1],17)['time']),callback_data='pilot')],
+                         						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],18)['abbr'], time=getResultsNumber(disputedRacesList[-1],18)['time']),callback_data='pilot')],
+                        						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],19)['abbr'], time=getResultsNumber(disputedRacesList[-1],19)['time']),callback_data='pilot')],
+                         						[InlineKeyboardButton(text="1: {abbr}  {time}".format(abbr=getResultsNumber(disputedRacesList[-1],20)['abbr'], time=getResultsNumber(disputedRacesList[-1],20)['time']),callback_data='pilot')]])
+
+print(getResultsNumber(disputedRacesList[-1],1)['abbr'], getResultsNumber(disputedRacesList[-1],1)['time'])
+'''''''''''''''''''''''''''''''''''''''''''''
+Telegram bot integration
+
+'''''''''''''''''''''''''''''''''''''''''''''
+def on_chat_message(msg):
+	content_type, chat_type, chat_id = telepot.glance(msg)
+	bot.sendMessage(chat_id, 'Try pressing one of the buttons below', reply_markup=start)
+
+def on_callback_query(msg):
+	query_id, chat_id, query_data = telepot.glance(msg, flavor='callback_query')
+	print(query_data)
+	if(query_data == 'latest'):
+		bot.sendMessage(chat_id, '{state} Grand Prix'.format(state=getState(disputedRacesList[-1])), reply_markup=latest)
+		bot.answerCallbackQuery(query_id)
+i=0
+
+MessageLoop(bot, {'chat': on_chat_message,'callback_query': on_callback_query}).run_as_thread()
+
+while 1:
+	time.sleep(1)
+	i += 1
+	print(i)
+	if(i >= 3600):
+		i = 0
+		disputedRacesList = disputedRaces()
