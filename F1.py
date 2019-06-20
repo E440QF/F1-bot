@@ -8,8 +8,8 @@ import telepot
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 
-# noinspection SpellCheckingInspection
-bot = telepot.Bot('863130447:AAHNE6jdJKSFBgncPY-eqlmRDuTq6RG227s')
+
+bot = telepot.Bot('api key')
 
 
 def get_html(url, tag):
