@@ -9,7 +9,7 @@ from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-bot = telepot.Bot('api key')
+bot = telepot.Bot('Api Key')
 
 
 def get_html(url, tag):
@@ -24,8 +24,10 @@ def get_race_attr(number):
     return race_attr
 
 
-def get_results(n, url):
-    pilots = get_html(url, 'tr')
+def get_results(n, url, pilots):
+    if pilots is None:
+        pilots = get_html(url, 'tr')
+
     data_pattern = r">.+<"
     time_pattern = r">.{3,11}<"
 
@@ -108,10 +110,11 @@ def disputed_races():
     now = datetime.datetime.now()
     disputed = []
     print('Updating calendar......')
-    for i in range(len(get_html("https://www.formula1.com/en/racing/2019.html", "article"))):
-        date = get_date(i)
+    length = len(get_html("https://www.formula1.com/en/racing/2019.html", "article"))
+    for j in range(length):
+        date = get_date(j)
         if (now.month > date[1]) or ((now.month == date[1]) and (now.day > date[0])):
-            disputed.append(i)
+            disputed.append(j)
     print('Done')
     return disputed
 
@@ -119,8 +122,8 @@ def disputed_races():
 disputedRacesList = disputed_races()
 
 
-def get_results_number(number, n):
-    return get_results(n, get_results_url(get_state(number)))
+def get_results_number(number, n, pilots):
+    return get_results(n, get_results_url(get_state(number)), pilots)
 
 
 # print(get_state(disputed_races()[-1]+1))
@@ -138,67 +141,73 @@ start = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='latest
 
 
 def result_keyboard(n):
+    results = [0]
+    pilots = get_html(get_results_url(get_state(n)), 'tr')
+    for num in range(1, 21):
+        print('getting ' + str(num) + ' results')
+        results.append(get_results_number(n, num, pilots))
+
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 1)['abbr'],
-            time=get_results_number(n, 1)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 2)['abbr'],
-            time=get_results_number(n, 2)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 3)['abbr'],
-            time=get_results_number(n, 3)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 4)['abbr'],
-            time=get_results_number(n, 4)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 5)['abbr'],
-            time=get_results_number(n, 5)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 6)['abbr'],
-            time=get_results_number(n, 6)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 7)['abbr'],
-            time=get_results_number(n, 7)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 8)['abbr'],
-            time=get_results_number(n, 8)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 9)['abbr'],
-            time=get_results_number(n, 9)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 10)['abbr'],
-            time=get_results_number(n, 10)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 11)['abbr'],
-            time=get_results_number(n, 11)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 12)['abbr'],
-            time=get_results_number(n, 12)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 13)['abbr'],
-            time=get_results_number(n, 13)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 14)['abbr'],
-            time=get_results_number(n, 14)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 15)['abbr'],
-            time=get_results_number(n, 15)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 16)['abbr'],
-            time=get_results_number(n, 16)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 17)['abbr'],
-            time=get_results_number(n, 17)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 18)['abbr'],
-            time=get_results_number(n, 18)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 19)['abbr'],
-            time=get_results_number(n, 19)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=get_results_number(n, 20)['abbr'],
-            time=get_results_number(n, 20)['time']), callback_data='pilot')],
+            abbr=results[1]['abbr'],
+            time=results[1]['time']), callback_data='pilot')],
         [InlineKeyboardButton(text='<---back---', callback_data='start')]])
 
 
