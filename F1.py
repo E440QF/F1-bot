@@ -260,3 +260,4 @@ while 1:
         i = 0
         disputedRacesList = disputed_races()
         latest = result_keyboard(disputedRacesList[-1])
+
