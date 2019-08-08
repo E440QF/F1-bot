@@ -1,140 +1,140 @@
-import requests
-# import urllib.request
-import time
-import datetime
-import re
-from bs4 import BeautifulSoup
-import telepot
-from telepot.loop import MessageLoop
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-from modules.database import User, Race
+import requests                                                             #
+import time                                                                 #
+import datetime                                                             #
+import re                                                                   #
+from bs4 import BeautifulSoup                                               # Importing modules
+import telepot                                                              # needed by this program
+from telepot.loop import MessageLoop                                        #
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton   #
+from modules.database import User, Race                                     #
 
 try:
-    f = open('token.txt', 'r')
-    token = f.readline().strip()
-    f.close()
-except FileNotFoundError:
-    token = input("scrivi qui il token del bot: ")
-    f = open('token.txt', 'w')
-    f.write(token)
-    f.close()
-
-bot = telepot.Bot(token)
-
-
-def get_html(url, tag):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    return soup.findAll(tag)
+    f = open('token.txt', 'r')                          #
+    token = f.readline().strip()                        #
+    f.close()                                           #
+except FileNotFoundError:                               # Getting the telegram bot token
+    token = input("write here the bot api token: ")     # from user/token.txt
+    f = open('token.txt', 'w')                          #
+    f.write(token)                                      #
+    f.close()                                           #
+                                                        #
+bot = telepot.Bot(token)                                # Telegram bot object initialization
 
 
-def get_race_attr(number):
-    races_list = get_html("https://www.formula1.com/en/racing/2019.html", "article")
-    race_attr = str(races_list[number]).split("\n")
-    return race_attr
+def get_html(url, tag):                                 #
+    response = requests.get(url)                        # This function returns all the occourrencies
+    soup = BeautifulSoup(response.text, "html.parser")  # of a specific tag in the url's html
+    return soup.findAll(tag)                            #
+
+
+def get_race_attr(number):                              #
+    races_list = get_html("https://www.formula1.com"    # This function returns all the attributes needed by 
+                    "/en/racing/2019.html", "article")  # the program for a specified race
+    race_attr = str(races_list[number]).split("\n")     #
+    return race_attr                                    #
 
 
 def get_results(n, url, pilots):
     if pilots is None:
         pilots = get_html(url, 'tr')
 
-    data_pattern = r">.+<"
-    time_pattern = r">.{2,11}<"
+    data_pattern = r">.+<"                              # REGEX pattern used for the scraping of regular data
+    time_pattern = r">.{2,11}<"                         # REGEX pattern used for the scraping of time data
 
-    ######################################################
+    #####################################################
 
-    attr = str(pilots[n]).split("\n")
-    pos_re = re.search(data_pattern, attr[2])
-    car_number_re = re.search(data_pattern, attr[3])
-    name_re = re.search(data_pattern, attr[5])
-    surname_re = re.search(data_pattern, attr[6])
-    abbr_re = re.search(data_pattern, attr[7])
-    team_re = re.search(data_pattern, attr[9])
-    laps_re = re.search(data_pattern, attr[10])
-    time_re = re.search(time_pattern, attr[11])
-    pts_re = re.search(data_pattern, attr[12])
+    attr = str(pilots[n]).split("\n")                   #
+    pos_re = re.search(data_pattern, attr[2])           #
+    car_number_re = re.search(data_pattern, attr[3])    #
+    name_re = re.search(data_pattern, attr[5])          #
+    surname_re = re.search(data_pattern, attr[6])       # This piece of code searches for pilot data using
+    abbr_re = re.search(data_pattern, attr[7])          # the previously mentioned REGEX patterns
+    team_re = re.search(data_pattern, attr[9])          #
+    laps_re = re.search(data_pattern, attr[10])         #
+    time_re = re.search(time_pattern, attr[11])         #
+    pts_re = re.search(data_pattern, attr[12])          #
 
-    ######################################################
+    #####################################################
 
-    pos = pos_re.group()
-    car_number = car_number_re.group()
-    name = name_re.group()
-    surname = surname_re.group()
-    abbr = abbr_re.group()
-    team = team_re.group()
-    laps = laps_re.group()
-    time = time_re.group()
-    pts = pts_re.group()
+    pos = pos_re.group()                                #
+    car_number = car_number_re.group()                  #
+    name = name_re.group()                              #
+    surname = surname_re.group()                        # This piece of code extract the data from the
+    abbr = abbr_re.group()                              # results of the REGEX search
+    team = team_re.group()                              #
+    laps = laps_re.group()                              #
+    time = time_re.group()                              #
+    pts = pts_re.group()                                #
 
-    ######################################################
+    #####################################################
 
-    result = {"pos": pos, "car_number": car_number, " name": name, "surname": surname,
-              "abbr": abbr, "team": team, "laps": laps, "time": time, "pts": pts}
-    return result
+    result = {"pos": pos, "car_number": car_number, " name": name, "surname": surname,  # This function returns the
+              "abbr": abbr, "team": team, "laps": laps, "time": time, "pts": pts}       # results for a given pilot
+    return result                                                                       # on a given race
 
 
 '''
-def get_results_url(state):
-    urlPattern   = r"\".{75,95}\""
-    urlPattern2  = r".+[h][t][m][l]"
-    racesUrl     = "https://www.formula1.com/en/racing/2019/"+state+".html"
-    races        = get_html(racesUrl,'p')
-    race         = str(races[14]).split("\n")
-    rUrlRE       = re.search(urlPattern,race[9])
-    rUrl         = rUrlRE.group()
-    rUrl2RE      = re.search(urlPattern2,rUrl.replace("\"",""))
-    rUrl2        = rUrl2RE.group()
-    return(rUrl2)
+def get_results_url(state):                                                     # This piece of code is pure BULLSHIT
+    urlPattern   = r"\".{75,95}\""                                              # This piece of code is pure BULLSHIT
+    urlPattern2  = r".+[h][t][m][l]"                                            # This piece of code is pure BULLSHIT
+    racesUrl     = "https://www.formula1.com/en/racing/2019/"+state+".html"     # This piece of code is pure BULLSHIT
+    races        = get_html(racesUrl,'p')                                       # This piece of code is pure BULLSHIT
+    race         = str(races[14]).split("\n")                                   # This piece of code is pure BULLSHIT
+    rUrlRE       = re.search(urlPattern,race[9])                                # This piece of code is pure BULLSHIT
+    rUrl         = rUrlRE.group()                                               # This piece of code is pure BULLSHIT
+    rUrl2RE      = re.search(urlPattern2,rUrl.replace("\"",""))                 # This piece of code is pure BULLSHIT
+    rUrl2        = rUrl2RE.group()                                              # This piece of code is pure BULLSHIT
+    return(rUrl2)                                                               # This piece of code is pure BULLSHIT
 '''
 
 
-def get_results_url(state, n):
+def get_results_url(state, n):                                                  # This is the actual code that gets the
     return "https://www.formula1.com/en/results.html/2019/races/" + \
-           str(1000 + n) + "/" + state.replace("_", "-") + "/race-result.html"
+           str(1000 + n) + "/" + state.replace("_", "-") + "/race-result.html"  # url of the results of a specified race
 
 
-def month_to_number(month):
-    months = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
-              "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
-    return months[month]
+def month_to_number(month):                                                     #
+    months = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,       # This function converts literal
+              "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}    # months into numerical months
+    return months[month]                                                        #
 
 
-def get_state(number):
-    state_pattern1 = r"/[A-Za-z_]+\.jpg"
-    state_pattern2 = r"[A-Za-z_]+"
-    state1 = re.search(state_pattern1, get_race_attr(number)[1])
-    state2 = re.search(state_pattern2, state1.group())
-    return state2.group()
+def get_state(number):                                                          #
+    state_pattern1 = r"/[A-Za-z_]+\.jpg"                                        #
+    state_pattern2 = r"[A-Za-z_]+"                                              # This function returns the
+    state1 = re.search(state_pattern1, get_race_attr(number)[1])                # state of a race requiring the
+    state2 = re.search(state_pattern2, state1.group())                          # number of the race as input
+    return state2.group()                                                       #
 
 
-def get_date(number):
-    date_pattern = r"[0-9]{1,2} [A-Za-z]{3,3}"
-    date_re = re.search(date_pattern, get_race_attr(number)[6])
-    date_text = date_re.group().split(" ")
-    num = int(date_text[0])
-    month = month_to_number(date_text[1])
-    date = [num, month]
-    return date
+def get_date(number):                                                           #
+    date_pattern = r"[0-9]{1,2} [A-Za-z]{3,3}"                                  #
+    date_re = re.search(date_pattern, get_race_attr(number)[6])                 # This function returns the
+    date_text = date_re.group().split(" ")                                      # date of a race requiring the
+    num = int(date_text[0])                                                     # umber of the race as input
+    month = month_to_number(date_text[1])                                       #
+    date = [num, month]                                                         #
+    return date                                                                 #
 
 
-def disputed_races():
-    now = datetime.datetime.now()
-    disputed = []
-    print('Updating calendar......')
-    length = len(get_html("https://www.formula1.com/en/racing/2019.html", "article"))
-    for j in range(length):
-        date = get_date(j)
-        if (now.month > date[1]) or ((now.month == date[1]) and (now.day > date[0])):
-            disputed.append(j)
-    print('Done')
-    return disputed
+def disputed_races():                                                                   #
+    now = datetime.datetime.now()                                                       #
+    disputed = []                                                                       #
+    print('Updating calendar......')                                                    #
+    length = len(get_html("https://www.formula1.com/en/racing/2019.html", "article"))   # This function returns a list
+    for j in range(length):                                                             # containing all the races that
+        date = get_date(j)                                                              # have already been disputed
+        if (now.month > date[1]) or ((now.month == date[1]) and (now.day > date[0])):   #
+            disputed.append(j)                                                          #
+    print('Done')                                                                       #
+    return disputed                                                                     #
 
 
 disputedRacesList = disputed_races()
 
 
-def get_results_number(number, n, pilots):
-    return get_results(n, get_results_url(get_state(number), number), pilots)
+def get_results_number(number, n, pilots):                                      # This function shortens the process
+    return get_results(n, get_results_url(get_state(number), number), pilots)   # of getting results from  race number
 
 
 # print(get_state(disputed_races()[-1]+1))
