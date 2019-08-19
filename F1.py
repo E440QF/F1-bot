@@ -6,7 +6,9 @@ from bs4 import BeautifulSoup                                               # Im
 import telepot                                                              # needed by this program
 from telepot.loop import MessageLoop                                        #
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton   #
-#from modules.database import User, Race                                     #
+from modules.database import User, Race                                     #
+from pony.orm import db_session                                             #
+
 
 try:
     f = open('token.txt', 'r')                          #
@@ -131,6 +133,12 @@ def disputed_races():                                                           
 
 
 disputedRacesList = disputed_races()
+
+@db_session
+def update_race_database():
+    for number in disputedRacesList:
+        if not Race.exists(lambda u: u.number == number ):
+            Race(number=number)
 
 
 def get_results_number(number, n, pilots):                                      # This function shortens the process

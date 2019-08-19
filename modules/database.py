@@ -1,4 +1,4 @@
-from pony.orm import Database, Required, IntArray , Optional  , StrArray
+from pony.orm import Database, Required, IntArray, Optional, StrArray
 
 db = Database("sqlite", "../F1-bot.db", create_db=True)
 
@@ -11,6 +11,7 @@ class User(db.Entity):
 
 
 class Race(db.Entity):
+    number = Required(int)
     state = Required(str)
     date = Required(IntArray)
     disputed = Required(bool, default=False)
