@@ -137,13 +137,62 @@ disputedRacesList = disputed_races()
 @db_session
 def update_race_database():
     for number in disputedRacesList:
-        if not Race.exists(lambda u: u.number == number ):
+        if not Race.exists(lambda n: n.number == number):
             Race(number=number)
+            race  = Race.get(number=number)
+            n01   = get_results_number(number,  1)
+            print("getting reslts")
+            n02   = get_results_number(number,  2)
+            print("getting reslts")
+            n03   = get_results_number(number,  3)
+            print("getting reslts")
+            n04   = get_results_number(number,  4)
+            print("getting reslts")
+            n05   = get_results_number(number,  5)
+            print("getting reslts")
+            n06   = get_results_number(number,  6)
+            print("getting reslts")
+            n07   = get_results_number(number,  7)
+            print("getting reslts")
+            n08   = get_results_number(number,  8)
+            print("getting reslts")
+            n09   = get_results_number(number,  9)
+            print("getting reslts")
+            n10   = get_results_number(number, 10)
+            print("getting reslts")
+            n11   = get_results_number(number, 11)
+            print("getting reslts")
+            n12   = get_results_number(number, 12)
+            print("getting reslts")
+            n13   = get_results_number(number, 13)
+            print("getting reslts")
+            n14   = get_results_number(number, 14)
+            print("getting reslts")
+            n15   = get_results_number(number, 15)
+            print("getting reslts")
+            n16   = get_results_number(number, 16)
+            print("getting reslts")
+            n17   = get_results_number(number, 17)
+            print("getting reslts")
+            n18   = get_results_number(number, 18)
+            print("getting reslts")
+            n19   = get_results_number(number, 19)
+            print("getting reslts")
+            n20   = get_results_number(number, 20)
+            print("getting reslts")
+            date  = get_date(number)
+            state = get_state(number)
+            print('setting')
+            race.set(n01 = n01, n02 = n02, n03 = n03, n04 = n04, n05 = n05, n06 = n06, n07 = n07, n08 = n08, n09 = n09,
+                     n10 = n10, n11 = n11, n12 = n12, n13 = n13, n14 = n14, n15 = n15, n16 = n16, n17 = n17,
+                     n18 = n18, n19 = n19, n20 = n20, date = date, state = state, disputed = True)
+            print('set')
 
 
-def get_results_number(number, n, pilots):                                      # This function shortens the process
+def get_results_number(number, n, pilots=None):                                 # This function shortens the process
     return get_results(n, get_results_url(get_state(number), number), pilots)   # of getting results from  race number
 
+update_race_database()
 
 # print(get_state(disputed_races()[-1]+1))
 
@@ -163,7 +212,7 @@ def result_keyboard(n):
 
     results = [0]
     pilots = get_html(get_results_url(get_state(n), n), 'tr')
-    
+
     for num in range(1, 21):
         print('getting ' + str(num) + ' results')
         results.append(get_results_number(n, num, pilots))
@@ -269,4 +318,3 @@ while 1:
         i = 0
         disputedRacesList = disputed_races()
         latest = result_keyboard(disputedRacesList[-1])
-

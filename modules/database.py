@@ -12,9 +12,9 @@ class User(db.Entity):
 
 class Race(db.Entity):
     number = Required(int)
-    state = Required(str)
-    date = Required(IntArray)
-    disputed = Required(bool, default=False)
+    state = Optional(str)
+    date = Optional(IntArray)
+    disputed = Optional(bool, default=False)
     n01 = Optional(StrArray)
     n02 = Optional(StrArray)
     n03 = Optional(StrArray)
