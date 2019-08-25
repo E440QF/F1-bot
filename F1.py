@@ -10,6 +10,14 @@ from modules.database import User, Race                                     #
 from pony.orm import db_session                                             #
 
 
+
+@db_session
+def boh():
+    race  = Race.get(number=5)
+
+
+boh()
+
 try:
     f = open('token.txt', 'r')                          #
     token = f.readline().strip()                        #
@@ -134,6 +142,8 @@ def disputed_races():                                                           
 
 disputedRacesList = disputed_races()
 
+
+
 @db_session
 def update_race_database():
     for number in disputedRacesList:
@@ -183,14 +193,23 @@ def update_race_database():
             date  = get_date(number)
             state = get_state(number)
             print('setting')
-            race.set(n01 = n01, n02 = n02, n03 = n03, n04 = n04, n05 = n05, n06 = n06, n07 = n07, n08 = n08, n09 = n09,
-                     n10 = n10, n11 = n11, n12 = n12, n13 = n13, n14 = n14, n15 = n15, n16 = n16, n17 = n17,
-                     n18 = n18, n19 = n19, n20 = n20, date = date, state = state, disputed = True)
+            race.set(n01=n01, n02=n02, n03=n03, n04=n04, n05=n05, n06=n06, n07=n07, n08=n08, n09=n09,
+                     n10=n10, n11=n11, n12=n12, n13=n13, n14=n14, n15=n15, n16=n16, n17=n17,
+                     n18=n18, n19=n19, n20=n20, date=date, state=state, disputed=True)
             print('set')
+
+@db_session
+def db_to_results(number):
+    race = Race.get(number = number)
+    return [race.n01, race.n02, race.n03, race.n04, race.n05, race.n06, race.n07, race.n08, race.n09, race.n10,
+            race.n11, race.n12, race.n13, race.n14, race.n15, race.n16, race.n17, race.n18, race.n19, race.n20,
+            race.state, race.date]
+
 
 
 def get_results_number(number, n, pilots=None):                                 # This function shortens the process
     return get_results(n, get_results_url(get_state(number), number), pilots)   # of getting results from  race number
+
 
 update_race_database()
 
@@ -207,82 +226,100 @@ start = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='latest
                                               [InlineKeyboardButton(text='previous races', callback_data='previous')],
                                               [InlineKeyboardButton(text='upcoming races', callback_data='upcoming')]])
 
+@db_session
+def previous_keyboard():
+    buttons = []
+    for r in disputedRacesList:
+        buttons.append([InlineKeyboardButton(text='{race}: {state}'.format(race=str(r+1), state=db_to_results(r)[20]),callback_data=str(r))])
+    buttons.append([InlineKeyboardButton(text='<---back---', callback_data='start')])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def result_keyboard(n):
 
-    results = [0]
-    pilots = get_html(get_results_url(get_state(n), n), 'tr')
+previous = previous_keyboard()
 
-    for num in range(1, 21):
-        print('getting ' + str(num) + ' results')
-        results.append(get_results_number(n, num, pilots))
+
+def result_keyboard(n,callback='start'):
+
+    results = db_to_results(n)
+    #pilots = get_html(get_results_url(get_state(n), n), 'tr')
+
+    #for num in range(1, 21):
+    #    print('getting ' + str(num) + ' results')
+    #    results.append(get_results_number(n, num, pilots))
 
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
+        [InlineKeyboardButton(text="0: {abbr}  {time}".format(
+            abbr=results[0][4],
+            time=results[0][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="1: {abbr}  {time}".format(
             abbr=results[1][4],
             time=results[1][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="2: {abbr}  {time}".format(
             abbr=results[2][4],
-            time=results[2][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="3: {abbr}  {time}".format(
+            time=results[2][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="3: {abbr}  {time}".format(
             abbr=results[3][4],
             time=results[3][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="4: {abbr}  {time}".format(
             abbr=results[4][4],
-            time=results[4][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="5: {abbr}  {time}".format(
+            time=results[4][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="5: {abbr}  {time}".format(
             abbr=results[5][4],
             time=results[5][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="6: {abbr}  {time}".format(
             abbr=results[6][4],
-            time=results[6][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="7: {abbr}  {time}".format(
+            time=results[6][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="7: {abbr}  {time}".format(
             abbr=results[7][4],
             time=results[7][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="8: {abbr}  {time}".format(
             abbr=results[8][4],
-            time=results[8][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="9: {abbr}  {time}".format(
+            time=results[8][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="9: {abbr}  {time}".format(
             abbr=results[9][4],
             time=results[9][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="10: {abbr}  {time}".format(
             abbr=results[10][4],
-            time=results[10][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="11: {abbr}  {time}".format(
+            time=results[10][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="11: {abbr}  {time}".format(
             abbr=results[11][4],
             time=results[11][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="12: {abbr}  {time}".format(
             abbr=results[12][4],
-            time=results[12][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="13: {abbr}  {time}".format(
+            time=results[12][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="13: {abbr}  {time}".format(
             abbr=results[13][4],
             time=results[13][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="14: {abbr}  {time}".format(
             abbr=results[14][4],
-            time=results[14][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="15: {abbr}  {time}".format(
+            time=results[14][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="15: {abbr}  {time}".format(
             abbr=results[15][4],
             time=results[15][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="16: {abbr}  {time}".format(
             abbr=results[16][4],
-            time=results[16][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="17: {abbr}  {time}".format(
+            time=results[16][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="17: {abbr}  {time}".format(
             abbr=results[17][4],
             time=results[17][7]), callback_data='pilot')],
         [InlineKeyboardButton(text="18: {abbr}  {time}".format(
             abbr=results[18][4],
-            time=results[18][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="19: {abbr}  {time}".format(
+            time=results[18][7]), callback_data='pilot'),
+        InlineKeyboardButton(text="19: {abbr}  {time}".format(
             abbr=results[19][4],
             time=results[19][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="20: {abbr}  {time}".format(
-            abbr=results[20][4],
-            time=results[20][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text='<---back---', callback_data='start')]])
+        [InlineKeyboardButton(text='<---back---', callback_data=callback)]])
 
 
 latest = result_keyboard(disputedRacesList[-1])
 # print(get_results_number(disputedRacesList[-1],1)['abbr'], get_results_number(disputedRacesList[-1],1)['time'])
+def update_data():
+    global latest
+    disputedRacesList = disputed_races()
+    update_race_database()
+    latest = result_keyboard(disputedRacesList[-1])
+
+
 '''''''''''''''''''''''''''''''''''''''''''''
 Telegram bot integration
 
@@ -298,14 +335,25 @@ def on_callback_query(msg):
     query_id, chat_id, query_data = telepot.glance(msg, flavor='callback_query')
     print(query_data)
     if query_data == 'latest':
-        bot.sendMessage(chat_id, '{state} Grand Prix'.format(state=get_state(disputedRacesList[-1])),
+        bot.sendMessage(chat_id,
+                        '{state} Grand Prix, {day}/{month}/2019'.format(state=db_to_results(disputedRacesList[-1])[20],
+                                                                    day=db_to_results(disputedRacesList[-1])[21][0],
+                                                                    month=db_to_results(disputedRacesList[-1])[21][1]),
                         reply_markup=latest)
         bot.answerCallbackQuery(query_id)
     elif query_data == 'start':
         bot.sendMessage(chat_id, 'Try pressing one of the buttons below', reply_markup=start)
         bot.answerCallbackQuery(query_id)
-
-
+    elif query_data == 'previous':
+        bot.sendMessage(chat_id, 'Previous races', reply_markup=previous)
+        bot.answerCallbackQuery(query_id)
+    elif re.match("[0-9]+",query_data):
+        bot.sendMessage(chat_id,  '{state} Grand Prix, {day}/{month}/2019'.format(
+                                                        state=db_to_results(disputedRacesList[int(query_data)])[20],
+                                                        day=db_to_results(disputedRacesList[int(query_data)])[21][0],
+                                                        month=db_to_results(disputedRacesList[int(query_data)])[21][1]),
+                        reply_markup=result_keyboard(int(query_data), 'previous'))
+        bot.answerCallbackQuery(query_id)
 i = 0
 
 MessageLoop(bot, {'chat': on_chat_message, 'callback_query': on_callback_query}).run_as_thread()
@@ -316,5 +364,4 @@ while 1:
     print(i)
     if i >= 3600:
         i = 0
-        disputedRacesList = disputed_races()
-        latest = result_keyboard(disputedRacesList[-1])
+        update_data()
