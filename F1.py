@@ -10,14 +10,6 @@ from modules.database import User, Race                                     #
 from pony.orm import db_session                                             #
 
 
-
-@db_session
-def boh():
-    race  = Race.get(number=5)
-
-
-boh()
-
 try:
     f = open('token.txt', 'r')                          #
     token = f.readline().strip()                        #
@@ -83,21 +75,6 @@ def get_results(n, url, pilots):
     return result                                                               # on a given race
 
 
-'''
-def get_results_url(state):                                                     # This piece of code is pure BULLSHIT
-    urlPattern   = r"\".{75,95}\""                                              # This piece of code is pure BULLSHIT
-    urlPattern2  = r".+[h][t][m][l]"                                            # This piece of code is pure BULLSHIT
-    racesUrl     = "https://www.formula1.com/en/racing/2019/"+state+".html"     # This piece of code is pure BULLSHIT
-    races        = get_html(racesUrl,'p')                                       # This piece of code is pure BULLSHIT
-    race         = str(races[14]).split("\n")                                   # This piece of code is pure BULLSHIT
-    rUrlRE       = re.search(urlPattern,race[9])                                # This piece of code is pure BULLSHIT
-    rUrl         = rUrlRE.group()                                               # This piece of code is pure BULLSHIT
-    rUrl2RE      = re.search(urlPattern2,rUrl.replace("\"",""))                 # This piece of code is pure BULLSHIT
-    rUrl2        = rUrl2RE.group()                                              # This piece of code is pure BULLSHIT
-    return(rUrl2)                                                               # This piece of code is pure BULLSHIT
-'''
-
-
 def get_results_url(state, n):                                                  # This is the actual code that gets the
     return "https://www.formula1.com/en/results.html/2019/races/" + \
            str(1000 + n) + "/" + state.replace("_", "-") + "/race-result.html"  # url of the results of a specified race
@@ -126,7 +103,6 @@ def get_date(number):                                                           
     date = [num, month]                                                         #
     return date                                                                 #
 
-
 def disputed_races():                                                                   #
     now = datetime.datetime.now()                                                       #
     disputed = []                                                                       #
@@ -140,16 +116,13 @@ def disputed_races():                                                           
     return disputed                                                                     #
 
 
-disputedRacesList = disputed_races()
-
-
-
 @db_session
 def update_race_database():
     for number in disputedRacesList:
         if not Race.exists(lambda n: n.number == number):
             Race(number=number)
             race  = Race.get(number=number)
+
             n01   = get_results_number(number,  1)
             print("getting reslts")
             n02   = get_results_number(number,  2)
@@ -206,15 +179,8 @@ def db_to_results(number):
             race.state, race.date]
 
 
-
 def get_results_number(number, n, pilots=None):                                 # This function shortens the process
     return get_results(n, get_results_url(get_state(number), number), pilots)   # of getting results from  race number
-
-
-update_race_database()
-
-# print(get_state(disputed_races()[-1]+1))
-
 
 '''''''''''''''''''''''''''''''''''''''''''''
 
@@ -229,97 +195,45 @@ start = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='latest
 @db_session
 def previous_keyboard():
     buttons = []
+
     for r in disputedRacesList:
-        buttons.append([InlineKeyboardButton(text='{race}: {state}'.format(race=str(r+1), state=db_to_results(r)[20]),callback_data=str(r))])
+        buttons.append([InlineKeyboardButton(text='{race}: {state}'.format(race=str(r+1),
+                                            state=db_to_results(r)[20]),callback_data=str(r))])
+
     buttons.append([InlineKeyboardButton(text='<---back---', callback_data='start')])
+
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-previous = previous_keyboard()
-
-
 def result_keyboard(n,callback='start'):
-
     results = db_to_results(n)
-    #pilots = get_html(get_results_url(get_state(n), n), 'tr')
+    buttons = []
 
-    #for num in range(1, 21):
-    #    print('getting ' + str(num) + ' results')
-    #    results.append(get_results_number(n, num, pilots))
+    for p in range(11):
+        buttons.append([InlineKeyboardButton(text="{num}: {abbr}  {time}".format(
+                                            num=p+1,
+                                            abbr=results[p][4],
+                                            time=results[p][7]), callback_data='pilot'),
+                        InlineKeyboardButton(text="{num}: {abbr}  {time}".format(
+                                            num=p+2,
+                                            abbr=results[p+1][4],
+                                            time=results[p+1][7]), callback_data='pilot')])
 
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="0: {abbr}  {time}".format(
-            abbr=results[0][4],
-            time=results[0][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[1][4],
-            time=results[1][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="2: {abbr}  {time}".format(
-            abbr=results[2][4],
-            time=results[2][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="3: {abbr}  {time}".format(
-            abbr=results[3][4],
-            time=results[3][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="4: {abbr}  {time}".format(
-            abbr=results[4][4],
-            time=results[4][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="5: {abbr}  {time}".format(
-            abbr=results[5][4],
-            time=results[5][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="6: {abbr}  {time}".format(
-            abbr=results[6][4],
-            time=results[6][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="7: {abbr}  {time}".format(
-            abbr=results[7][4],
-            time=results[7][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="8: {abbr}  {time}".format(
-            abbr=results[8][4],
-            time=results[8][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="9: {abbr}  {time}".format(
-            abbr=results[9][4],
-            time=results[9][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="10: {abbr}  {time}".format(
-            abbr=results[10][4],
-            time=results[10][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="11: {abbr}  {time}".format(
-            abbr=results[11][4],
-            time=results[11][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="12: {abbr}  {time}".format(
-            abbr=results[12][4],
-            time=results[12][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="13: {abbr}  {time}".format(
-            abbr=results[13][4],
-            time=results[13][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="14: {abbr}  {time}".format(
-            abbr=results[14][4],
-            time=results[14][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="15: {abbr}  {time}".format(
-            abbr=results[15][4],
-            time=results[15][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="16: {abbr}  {time}".format(
-            abbr=results[16][4],
-            time=results[16][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="17: {abbr}  {time}".format(
-            abbr=results[17][4],
-            time=results[17][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text="18: {abbr}  {time}".format(
-            abbr=results[18][4],
-            time=results[18][7]), callback_data='pilot'),
-        InlineKeyboardButton(text="19: {abbr}  {time}".format(
-            abbr=results[19][4],
-            time=results[19][7]), callback_data='pilot')],
-        [InlineKeyboardButton(text='<---back---', callback_data=callback)]])
+    buttons.append([InlineKeyboardButton(text='<---back---', callback_data=callback)])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-latest = result_keyboard(disputedRacesList[-1])
-# print(get_results_number(disputedRacesList[-1],1)['abbr'], get_results_number(disputedRacesList[-1],1)['time'])
 def update_data():
     global latest
+    global disputedRacesList
+    global previous
     disputedRacesList = disputed_races()
     update_race_database()
     latest = result_keyboard(disputedRacesList[-1])
+    previous = previous_keyboard()
 
-
+update_data()
 '''''''''''''''''''''''''''''''''''''''''''''
 Telegram bot integration
 
@@ -347,17 +261,20 @@ def on_callback_query(msg):
     elif query_data == 'previous':
         bot.sendMessage(chat_id, 'Previous races', reply_markup=previous)
         bot.answerCallbackQuery(query_id)
-    elif re.match("[0-9]+",query_data):
-        bot.sendMessage(chat_id,  '{state} Grand Prix, {day}/{month}/2019'.format(
+    elif re.match("[0-9]+", query_data):
+        bot.sendMessage(chat_id,  '{state} Grand Prix, {day}/{month}/{year}'.format(
                                                         state=db_to_results(disputedRacesList[int(query_data)])[20],
                                                         day=db_to_results(disputedRacesList[int(query_data)])[21][0],
-                                                        month=db_to_results(disputedRacesList[int(query_data)])[21][1]),
+                                                        month=db_to_results(disputedRacesList[int(query_data)])[21][1],
+                                                        year=datetime.datetime.now().year),
                         reply_markup=result_keyboard(int(query_data), 'previous'))
         bot.answerCallbackQuery(query_id)
-i = 0
+
 
 MessageLoop(bot, {'chat': on_chat_message, 'callback_query': on_callback_query}).run_as_thread()
 
+
+i = 0
 while 1:
     time.sleep(1)
     i += 1
