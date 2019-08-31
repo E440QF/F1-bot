@@ -1,3 +1,2 @@
 # F1-bot
-a shitty written F1 telegram bot
-(work in progress)
+[Beta Version] A Telegram Bot to read F1 race statistics and more.

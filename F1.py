@@ -1,28 +1,20 @@
-import requests                                                             #
-import time                                                                 #
-import datetime                                                             #
-import re                                                                   #
-from bs4 import BeautifulSoup                                               # Importing modules
-import telepot                                                              # needed by this program
-from telepot.loop import MessageLoop                                        #
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton   #
-from modules.database import User, Race                                     #
+# Import modules
+from requests import get
+from time import sleep
+from datetime import datetime
+from re import search
+from bs4 import BeautifulSoup
+from telepot import Bot, glance
+from schedule import every, run_pending
+from modules.database import User, Race, Data
+from pony.orm import db_session
+from modules import keyboards
 
-try:
-    f = open('token.txt', 'r')                          #
-    token = f.readline().strip()                        #
-    f.close()                                           #
-except FileNotFoundError:                               # Getting the telegram bot token
-    token = input("write here the bot api token: ")     # from user/token.txt
-    f = open('token.txt', 'w')                          #
-    f.write(token)                                      #
-    f.close()                                           #
-                                                        #
-bot = telepot.Bot(token)                                # Telegram bot object initialization
+bot = None
 
 
 def get_html(url, tag):                                 #
-    response = requests.get(url)                        # This function returns all the occourrencies
+    response = get(url)                                 # This function returns all the occourrencies
     soup = BeautifulSoup(response.text, "html.parser")  # of a specific tag in the url's html
     return soup.findAll(tag)                            #
 
@@ -44,15 +36,15 @@ def get_results(n, url, pilots):
     #####################################################
 
     attr = str(pilots[n]).split("\n")                   #
-    pos_re = re.search(data_pattern, attr[2])           #
-    car_number_re = re.search(data_pattern, attr[3])    #
-    name_re = re.search(data_pattern, attr[5])          #
-    surname_re = re.search(data_pattern, attr[6])       # This piece of code searches for pilot data using
-    abbr_re = re.search(data_pattern, attr[7])          # the previously mentioned REGEX patterns
-    team_re = re.search(data_pattern, attr[9])          #
-    laps_re = re.search(data_pattern, attr[10])         #
-    time_re = re.search(time_pattern, attr[11])         #
-    pts_re = re.search(data_pattern, attr[12])          #
+    pos_re = search(data_pattern, attr[2])           #
+    car_number_re = search(data_pattern, attr[3])    #
+    name_re = search(data_pattern, attr[5])          #
+    surname_re = search(data_pattern, attr[6])       # This piece of code searches for pilot data using
+    abbr_re = search(data_pattern, attr[7])          # the previously mentioned REGEX patterns
+    team_re = search(data_pattern, attr[9])          #
+    laps_re = search(data_pattern, attr[10])         #
+    time_re = search(time_pattern, attr[11])         #
+    pts_re = search(data_pattern, attr[12])          #
 
     #####################################################
 
@@ -73,21 +65,6 @@ def get_results(n, url, pilots):
     return result                                                                       # on a given race
 
 
-'''
-def get_results_url(state):                                                     # This piece of code is pure BULLSHIT
-    urlPattern   = r"\".{75,95}\""                                              # This piece of code is pure BULLSHIT
-    urlPattern2  = r".+[h][t][m][l]"                                            # This piece of code is pure BULLSHIT
-    racesUrl     = "https://www.formula1.com/en/racing/2019/"+state+".html"     # This piece of code is pure BULLSHIT
-    races        = get_html(racesUrl,'p')                                       # This piece of code is pure BULLSHIT
-    race         = str(races[14]).split("\n")                                   # This piece of code is pure BULLSHIT
-    rUrlRE       = re.search(urlPattern,race[9])                                # This piece of code is pure BULLSHIT
-    rUrl         = rUrlRE.group()                                               # This piece of code is pure BULLSHIT
-    rUrl2RE      = re.search(urlPattern2,rUrl.replace("\"",""))                 # This piece of code is pure BULLSHIT
-    rUrl2        = rUrl2RE.group()                                              # This piece of code is pure BULLSHIT
-    return(rUrl2)                                                               # This piece of code is pure BULLSHIT
-'''
-
-
 def get_results_url(state, n):                                                  # This is the actual code that gets the
     return "https://www.formula1.com/en/results.html/2019/races/" + \
            str(1000 + n) + "/" + state.replace("_", "-") + "/race-result.html"  # url of the results of a specified race
@@ -102,14 +79,14 @@ def month_to_number(month):                                                     
 def get_state(number):                                                          #
     state_pattern1 = r"/[A-Za-z_]+\.jpg"                                        #
     state_pattern2 = r"[A-Za-z_]+"                                              # This function returns the
-    state1 = re.search(state_pattern1, get_race_attr(number)[1])                # state of a race requiring the
-    state2 = re.search(state_pattern2, state1.group())                          # number of the race as input
+    state1 = search(state_pattern1, get_race_attr(number)[1])                # state of a race requiring the
+    state2 = search(state_pattern2, state1.group())                          # number of the race as input
     return state2.group()                                                       #
 
 
 def get_date(number):                                                           #
     date_pattern = r"[0-9]{1,2} [A-Za-z]{3,3}"                                  #
-    date_re = re.search(date_pattern, get_race_attr(number)[6])                 # This function returns the
+    date_re = search(date_pattern, get_race_attr(number)[6])                 # This function returns the
     date_text = date_re.group().split(" ")                                      # date of a race requiring the
     num = int(date_text[0])                                                     # umber of the race as input
     month = month_to_number(date_text[1])                                       #
@@ -117,146 +94,82 @@ def get_date(number):                                                           
     return date                                                                 #
 
 
-def disputed_races():                                                                   #
-    now = datetime.datetime.now()                                                       #
-    disputed = []                                                                       #
-    print('Updating calendar......')                                                    #
-    length = len(get_html("https://www.formula1.com/en/racing/2019.html", "article"))   # This function returns a list
-    for j in range(length):                                                             # containing all the races that
-        date = get_date(j)                                                              # have already been disputed
-        if (now.month > date[1]) or ((now.month == date[1]) and (now.day > date[0])):   #
-            disputed.append(j)                                                          #
-    print('Done')                                                                       #
-    return disputed                                                                     #
-
-
-disputedRacesList = disputed_races()
-
-
 def get_results_number(number, n, pilots):                                      # This function shortens the process
     return get_results(n, get_results_url(get_state(number), number), pilots)   # of getting results from  race number
 
 
-# print(get_state(disputed_races()[-1]+1))
+def reply(msg):
+    chatId = msg['from']['id']
+    name = msg['from']['first_name']
+    sent = bot.sendMessage(chatId, "Hey, <b>{}</b>!\n"
+                                   "What would you like to see?".format(name), parse_mode="HTML")
+    bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.start(sent['message_id']))
 
 
-'''''''''''''''''''''''''''''''''''''''''''''
+def inlinebutton(msg):
+    chatId, query_data = glance(msg, flavor="callback_query")[1:3]
+    user = User.get(chatId=chatId)
+    data = Data.get(general=True)
+    query_split = query_data.split("#")
+    message_id = int(query_split[1])
+    button = query_split[0]
 
-Keyboard creation
+    if button == "latest":
+        results = [0]
+        n = data.disputedRaces[-1]
+        pilots = get_html(get_results_url(get_state(n), n), 'tr')
+        for num in range(1, 21):
+            results.append(get_results_number(n, num, pilots))
+        message = ""
+        for res in results:
+            message += "- {}: {}".format(res['abbr'], res['time'])
+        
+        bot.editMessageText((chatId, message_id), "🏎 {} Grand Prix\n"
+                                                  "{}".format(get_state(n), message), reply_markup=keyboards.back(message_id))
 
-'''''''''''''''''''''''''''''''''''''''''''''
-start = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='latest', callback_data='latest'),
-                                               InlineKeyboardButton(text='next', callback_data='next')],
-                                              [InlineKeyboardButton(text='previous races', callback_data='previous')],
-                                              [InlineKeyboardButton(text='upcoming races', callback_data='upcoming')]])
+    elif button == "start":
+        bot.editMessageText((chatId, message_id), "What would you like to see?", reply_markup=keyboards.start(message_id))
 
-
-def result_keyboard(n):
-    results = [0]
-    pilots = get_html(get_results_url(get_state(n), n), 'tr')
-    for num in range(1, 21):
-        print('getting ' + str(num) + ' results')
-        results.append(get_results_number(n, num, pilots))
-
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[1]['abbr'],
-            time=results[1]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[2]['abbr'],
-            time=results[2]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[3]['abbr'],
-            time=results[3]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[4]['abbr'],
-            time=results[4]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[5]['abbr'],
-            time=results[5]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[6]['abbr'],
-            time=results[6]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[7]['abbr'],
-            time=results[7]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[8]['abbr'],
-            time=results[8]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[9]['abbr'],
-            time=results[9]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[10]['abbr'],
-            time=results[10]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[11]['abbr'],
-            time=results[11]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[12]['abbr'],
-            time=results[12]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[13]['abbr'],
-            time=results[13]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[14]['abbr'],
-            time=results[14]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[15]['abbr'],
-            time=results[15]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[16]['abbr'],
-            time=results[16]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[17]['abbr'],
-            time=results[17]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[18]['abbr'],
-            time=results[18]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[19]['abbr'],
-            time=results[19]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text="1: {abbr}  {time}".format(
-            abbr=results[20]['abbr'],
-            time=results[20]['time']), callback_data='pilot')],
-        [InlineKeyboardButton(text='<---back---', callback_data='start')]])
+    else:
+        bot.editMessageText((chatId, message_id), "Sorry, this function is currently not available.", reply_markup=None)
 
 
-latest = result_keyboard(disputedRacesList[-1])
-# print(get_results_number(disputedRacesList[-1],1)['abbr'], get_results_number(disputedRacesList[-1],1)['time'])
-'''''''''''''''''''''''''''''''''''''''''''''
-Telegram bot integration
-
-'''''''''''''''''''''''''''''''''''''''''''''
-
-
-def on_chat_message(msg):
-    content_type, chat_type, chat_id = telepot.glance(msg)
-    bot.sendMessage(chat_id, 'Try pressing one of the buttons below', reply_markup=start)
-
-
-def on_callback_query(msg):
-    query_id, chat_id, query_data = telepot.glance(msg, flavor='callback_query')
-    print(query_data)
-    if query_data == 'latest':
-        bot.sendMessage(chat_id, '{state} Grand Prix'.format(state=get_state(disputedRacesList[-1])),
-                        reply_markup=latest)
-        bot.answerCallbackQuery(query_id)
-    elif query_data == 'start':
-        bot.sendMessage(chat_id, 'Try pressing one of the buttons below', reply_markup=start)
-        bot.answerCallbackQuery(query_id)
+@db_session
+def fetchRaces():
+    data = Data.get(general=True)
+    now = datetime.now()
+    disputed = []
+    length = len(get_html("https://www.formula1.com/en/racing/2019.html", "article"))
+    for i in range(length):
+        date = get_date(i)
+        if (now.month > date[1]) or ((now.month == date[1]) and (now.day > date[0])):
+            disputed.append(i)
+    data.disputedRaces = disputed
 
 
-i = 0
+@db_session
+def initialize():
+    if not Data.exists(lambda d: d.general == True):
+        Data(general=True)
+    fetchRaces()
 
-MessageLoop(bot, {'chat': on_chat_message, 'callback_query': on_callback_query}).run_as_thread()
+    try:
+        f = open('token.txt', 'r')
+        token = f.readline().strip()
+        f.close()
+    except FileNotFoundError:
+        token = input("Paste the bot API Token: ")
+        f = open('token.txt', 'w')
+        f.write(token)
+        f.close()
 
-while 1:
-    time.sleep(1)
-    i += 1
-    print(i)
-    if i >= 3600:
-        i = 0
-        disputedRacesList = disputed_races()
-        latest = result_keyboard(disputedRacesList[-1])
+    bot = Bot(token)
 
+
+bot.message_loop({'chat': reply, 'callback_query': inlinebutton})
+every().hour().do(fetchRaces)
+initialize()
+
+while True:
+    sleep(60)
+    run_pending()
